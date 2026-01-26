@@ -1,0 +1,53 @@
+
+[
+  {
+    "id": "PROP001",
+    "clientName": "Ana Silva",
+    "cpf": "123.456.789-10",
+    "plan": "ADVANCE 600",
+    "status": "Emitida",
+    "broker": "Anderson Moura",
+    "submissionDate": "2024-07-20",
+    "value": "R$ 758,80"
+  },
+  {
+    "id": "PROP002",
+    "clientName": "Bruno Costa",
+    "cpf": "234.567.890-21",
+    "plan": "ADVANCE 700",
+    "status": "Pendente",
+    "broker": "Anderson Moura",
+    "submissionDate": "2024-07-21",
+    "value": "R$ 931,06"
+  },
+  {
+    "id": "PROP003",
+    "clientName": "Carla Dias",
+    "cpf": "345.678.901-32",
+    "plan": "BASIC COPART",
+    "status": "Paga",
+    "broker": "Beatriz Lima",
+    "submissionDate": "2024-07-18",
+    "value": "R$ 1.198,10"
+  },
+  {
+    "id": "PROP004",
+    "clientName": "Daniel Almeida",
+    "cpf": "456.789.012-43",
+    "plan": "ADVANCE 600",
+    "status": "Cancelada",
+    "broker": "Carlos Vieira",
+    "submissionDate": "2024-07-19",
+    "value": "R$ 758,80"
+  },
+  {
+    "id": "PROP005",
+    "clientName": "Eduarda Rocha",
+    "cpf": "567.890.123-54",
+    "plan": "ADVANCE 700",
+    "status": "Emitida",
+    "broker": "Anderson Moura",
+    "submissionDate": "2024-07-22",
+    "value": "R$ 931,06"
+  }
+]

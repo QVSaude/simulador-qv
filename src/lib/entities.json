@@ -1,0 +1,9 @@
+
+[
+    { "id": 17120, "nome": "ANEC - ASSOCIACAO NACIONAL DOS EMPREGADOS DO COMERCIO" },
+    { "id": 1, "nome": "OAB - Ordem dos Advogados do Brasil", "idProfissao": 2 },
+    { "id": 2, "nome": "CREMESP - Conselho Regional de Medicina", "idProfissao": 70 },
+    { "id": 3, "nome": "CREA - Conselho Regional de Engenharia e Agronomia", "idProfissao": 34 },
+    { "id": 4, "nome": "APEOESP - Sindicato dos Professores", "idProfissao": 77 },
+    { "id": 5, "nome": "UNE - União Nacional dos Estudantes", "idProfissao": 36 }
+]

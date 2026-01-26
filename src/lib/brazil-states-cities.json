@@ -1,0 +1,31 @@
+{
+  "states": [
+    { "name": "Acre", "uf": "AC", "cities": ["Rio Branco", "Cruzeiro do Sul"] },
+    { "name": "Alagoas", "uf": "AL", "cities": ["Maceió", "Arapiraca"] },
+    { "name": "Amapá", "uf": "AP", "cities": ["Macapá", "Santana"] },
+    { "name": "Amazonas", "uf": "AM", "cities": ["Manaus", "Parintins"] },
+    { "name": "Bahia", "uf": "BA", "cities": ["Salvador", "Feira de Santana"] },
+    { "name": "Ceará", "uf": "CE", "cities": ["Fortaleza", "Caucaia"] },
+    { "name": "Distrito Federal", "uf": "DF", "cities": ["Brasília"] },
+    { "name": "Espírito Santo", "uf": "ES", "cities": ["Vitória", "Vila Velha"] },
+    { "name": "Goiás", "uf": "GO", "cities": ["Goiânia", "Aparecida de Goiânia"] },
+    { "name": "Maranhão", "uf": "MA", "cities": ["São Luís", "Imperatriz"] },
+    { "name": "Mato Grosso", "uf": "MT", "cities": ["Cuiabá", "Várzea Grande"] },
+    { "name": "Mato Grosso do Sul", "uf": "MS", "cities": ["Campo Grande", "Dourados"] },
+    { "name": "Minas Gerais", "uf": "MG", "cities": ["Belo Horizonte", "Uberlândia", "Contagem", "Juiz de Fora"] },
+    { "name": "Pará", "uf": "PA", "cities": ["Belém", "Ananindeua"] },
+    { "name": "Paraíba", "uf": "PB", "cities": ["João Pessoa", "Campina Grande"] },
+    { "name": "Paraná", "uf": "PR", "cities": ["Curitiba", "Londrina"] },
+    { "name": "Pernambuco", "uf": "PE", "cities": ["Recife", "Jaboatão dos Guararapes"] },
+    { "name": "Piauí", "uf": "PI", "cities": ["Teresina", "Parnaíba"] },
+    { "name": "Rio de Janeiro", "uf": "RJ", "cities": ["Rio de Janeiro", "São Gonçalo", "Duque de Caxias", "Nova Iguaçu"] },
+    { "name": "Rio Grande do Norte", "uf": "RN", "cities": ["Natal", "Mossoró"] },
+    { "name": "Rio Grande do Sul", "uf": "RS", "cities": ["Porto Alegre", "Caxias do Sul"] },
+    { "name": "Rondônia", "uf": "RO", "cities": ["Porto Velho", "Ji-Paraná"] },
+    { "name": "Roraima", "uf": "RR", "cities": ["Boa Vista"] },
+    { "name": "Santa Catarina", "uf": "SC", "cities": ["Florianópolis", "Joinville"] },
+    { "name": "São Paulo", "uf": "SP", "cities": ["São Paulo", "Guarulhos", "Campinas", "São Bernardo do Campo"] },
+    { "name": "Sergipe", "uf": "SE", "cities": ["Aracaju", "Nossa Senhora do Socorro"] },
+    { "name": "Tocantins", "uf": "TO", "cities": ["Palmas", "Araguaína"] }
+  ]
+}

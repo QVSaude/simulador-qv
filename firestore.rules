@@ -1,0 +1,97 @@
+/**
+ * Core Philosophy: This ruleset implements a Role-Based Access Control (RBAC) model.
+ * The system is designed to securely handle public data submissions while protecting sensitive
+ * configuration and user information. Admin privileges are the primary mechanism for access control.
+ *
+ * Data Structure: The data is organized into three distinct top-level collections:
+ * - /quotes: Stores quote requests submitted by brokers. All authenticated brokers can read
+ *   the full list of quotes, but only admins can modify or delete them.
+ * - /whatsapp_configurations: A singleton-like collection for critical app settings, accessible
+ *   only by administrators.
+ * - /roles_admin: Acts as an Access Control List (ACL). The existence of a user's UID as a
+ *   document ID in this collection grants them admin privileges throughout the application.
+ *
+ * Key Security Decisions:
+ * - Broker Access: To allow brokers to manage leads, the `/quotes` collection allows
+ *   any authenticated user to create and read quotes. This ensures brokers can see all
+ *   incoming requests. Modification and deletion are restricted to admins for data integrity.
+ * - Admin Role Management: The `/roles_admin` collection is the sole source of truth for admin
+ *   status. For maximum security, this collection is read-only via client-side rules. Admins
+ *   must be added or removed manually through the Firebase Console or a trusted server-side process.
+ * - Default Deny: All paths not explicitly matched are denied access by default.
+ *
+ * Denormalization for Authorization: The ruleset uses a Database-Based Access Control (DBAC) pattern.
+ * Instead of using slow and complex custom claims, an admin's status is determined by a fast `exists()`
+ * check against the `/roles_admin/{userId}` path. This makes the authorization logic simple,
+ * performant, and easy to audit.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions for readable and reusable logic
+
+    /**
+     * Checks if a user is an administrator.
+     * Admin status is granted if a document with the user's UID exists in the /roles_admin collection.
+     */
+    function isAdmin() {
+      return exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
+    }
+
+    /**
+     * Verifies that the request is from an admin and the document already exists.
+     * Used for safe update and delete operations to prevent modifying non-existent data.
+     */
+    function isExistingDocAdmin() {
+      return isAdmin() && resource != null;
+    }
+
+    /**
+     * @description Rules for health plan quote requests.
+     * @path /quotes/{quoteId}
+     * @allow (get, list) Any authenticated user (broker) can read quotes.
+     * @allow (create) An authenticated user can create a quote if their UID matches the creatorId in the document.
+     * @allow (update, delete) Only an admin can manage existing quote requests.
+     * @deny A non-authenticated user cannot access quotes.
+     * @principle Allows brokers to see all quotes, create their own, but restricts destructive actions to admins.
+     */
+    match /quotes/{quoteId} {
+      allow get: if request.auth != null;
+      allow list: if request.auth != null;
+      allow create: if request.auth != null && request.resource.data.creatorId == request.auth.uid;
+      allow update: if isExistingDocAdmin();
+      allow delete: if isExistingDocAdmin();
+    }
+
+    /**
+     * @description Rules for the application's WhatsApp number configuration.
+     * @path /whatsapp_configurations/{configId}
+     * @allow (get, list, create, update, delete) An authenticated admin user can read and write the configuration.
+     * @deny Any non-admin user is blocked from reading or writing this sensitive configuration data.
+     * @principle Enforces strict Role-Based Access Control (RBAC). Only users designated as admins in the `/roles_admin` collection can access these settings.
+     */
+    match /whatsapp_configurations/{configId} {
+      allow get: if isAdmin();
+      allow list: if isAdmin();
+      allow create: if isAdmin();
+      allow update: if isExistingDocAdmin();
+      allow delete: if isExistingDocAdmin();
+    }
+
+    /**
+     * @description Rules for the collection that defines who is an admin.
+     * @path /roles_admin/{adminId}
+     * @allow (get, list) An authenticated admin user can see who the other admins are.
+     * @deny (create, update, delete) No user can modify admin roles from the client. This must be done via the Firebase Console or a secure backend.
+     * @principle Secures the Access Control List (ACL) itself. Making the role definition collection read-only from the client prevents privilege escalation attacks.
+     */
+    match /roles_admin/{adminId} {
+      allow get: if isAdmin();
+      allow list: if isAdmin();
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+  }
+}

@@ -1,0 +1,168 @@
+{
+  "entities": {
+    "HealthPlanQuote": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "HealthPlanQuote",
+      "type": "object",
+      "description": "Represents a health plan quote request.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the health plan quote."
+        },
+        "fullName": {
+          "type": "string",
+          "description": "The full name of the person requesting the quote."
+        },
+        "phone": {
+          "type": "string",
+          "description": "The WhatsApp phone number of the person requesting the quote."
+        },
+        "age": {
+          "type": "number",
+          "description": "The age of the person requesting the quote."
+        },
+        "cityState": {
+          "type": "string",
+          "description": "The city and state of the person requesting the quote."
+        },
+        "planType": {
+          "type": "string",
+          "description": "The type of health plan requested (Individual, Family, Business)."
+        },
+        "numberOfPeople": {
+          "type": "number",
+          "description": "The number of people to be covered by the plan."
+        },
+        "hasCnpj": {
+          "type": "boolean",
+          "description": "Indicates whether the requester has a CNPJ (Cadastro Nacional da Pessoa Jurídica)."
+        },
+        "submissionDate": {
+          "type": "string",
+          "description": "The date and time the quote request was submitted.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "fullName",
+        "phone",
+        "age",
+        "cityState",
+        "planType",
+        "numberOfPeople",
+        "hasCnpj"
+      ]
+    },
+    "WhatsAppConfiguration": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "WhatsAppConfiguration",
+      "type": "object",
+      "description": "Stores the configured WhatsApp number for sending quotes.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the WhatsApp configuration."
+        },
+        "phoneNumber": {
+          "type": "string",
+          "description": "The configured WhatsApp phone number."
+        },
+        "lastUpdated": {
+          "type": "string",
+          "description": "The date and time the WhatsApp number was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "phoneNumber"
+      ]
+    },
+    "AdminUser": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "AdminUser",
+      "type": "object",
+      "description": "Represents an admin user who can manage the WhatsApp configuration.  Authentication details (passwords) are not stored here.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the admin user."
+        },
+        "email": {
+          "type": "string",
+          "description": "The email address of the admin user.",
+          "format": "email"
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the admin user."
+        }
+      },
+      "required": [
+        "id",
+        "email",
+        "name"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/quotes/{quoteId}",
+        "definition": {
+          "entityName": "HealthPlanQuote",
+          "schema": {
+            "$ref": "#/backend/entities/HealthPlanQuote"
+          },
+          "description": "Stores health plan quote requests.",
+          "params": [
+            {
+              "name": "quoteId",
+              "description": "Unique identifier for the health plan quote."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/whatsapp_configurations/{configId}",
+        "definition": {
+          "entityName": "WhatsAppConfiguration",
+          "schema": {
+            "$ref": "#/backend/entities/WhatsAppConfiguration"
+          },
+          "description": "Stores the WhatsApp configuration. Access is restricted to admin users.  Admin status is determined by membership in the `/roles_admin` collection.",
+          "params": [
+            {
+              "name": "configId",
+              "description": "Unique identifier for the WhatsApp configuration."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/roles_admin/{adminId}",
+        "definition": {
+          "entityName": "AdminUser",
+          "schema": {
+            "$ref": "#/backend/entities/AdminUser"
+          },
+          "description": "Documents in this collection grant admin privileges. Existence of a document indicates admin status.",
+          "params": [
+            {
+              "name": "adminId",
+              "description": "The UID of the admin user."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure is designed to store health plan quote requests and WhatsApp configurations, while also managing admin users who can configure the WhatsApp number. The structure prioritizes security and ease of management.\n\n*   `/quotes`: This collection stores all health plan quote requests. Any authenticated user (including anonymous users via the app's sign-in flow) can create documents in this collection.\n*   `/whatsapp_configurations`: This collection stores the WhatsApp configuration. Access is restricted to admin users only.  The `/roles_admin/{uid}` collection is used to determine admin status.\n*   `/roles_admin/{adminId}`: This collection implements DBAC (Database-Based Access Control). The existence of a document in this collection grants admin privileges. This approach removes the need for custom claims or complex authorization logic.\n\nThis structure achieves Authorization Independence. The `whatsapp_configurations` collection's access control relies solely on checking for admin roles in the `/roles_admin/{uid}` collection, without needing to `get()` data from other documents.\n\nThis design supports the required QAPs. Segregation of `quotes` (publicly creatable) and `whatsapp_configurations` (admin-controlled) allows for secure `list` operations.  Listing health plan quotes does not expose sensitive admin data, and vice-versa."
+  }
+}
