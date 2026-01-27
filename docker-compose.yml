@@ -13,7 +13,7 @@ services:
       - "9002:9002"
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9002/ || exit 1"]
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:9002/ || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3

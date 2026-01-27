@@ -15,6 +15,9 @@ RUN pnpm install --frozen-lockfile
 # Copy source code
 COPY . .
 
+# Next.js pode não ter /public no repo; garanta a pasta para o COPY do runner
+RUN mkdir -p public
+
 # Build the application
 RUN pnpm build
 
