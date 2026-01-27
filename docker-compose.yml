@@ -6,11 +6,14 @@ services:
     working_dir: /app
     volumes:
       - ./:/app
+      - /app/node_modules
+      - /app/.next
     environment:
       NODE_ENV: development
       PORT: 9002
-    command: sh -c "corepack enable && pnpm install && pnpm dev"
+    command: sh -c "corepack enable && corepack prepare pnpm@latest --activate && pnpm install && pnpm dev -H 0.0.0.0"
     ports:
       - "9002:9002"
     stdin_open: true
     tty: true
+    restart: unless-stopped
