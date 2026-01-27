@@ -2,18 +2,19 @@ version: "3.9"
 
 services:
   web:
-    image: node:20-alpine
-    working_dir: /app
-    volumes:
-      - ./:/app
-      - /app/node_modules
-      - /app/.next
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner
     environment:
-      NODE_ENV: development
+      NODE_ENV: production
       PORT: 9002
-    command: sh -c "corepack enable && corepack prepare pnpm@latest --activate && pnpm install && pnpm dev -H 0.0.0.0"
     ports:
       - "9002:9002"
-    stdin_open: true
-    tty: true
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9002/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
