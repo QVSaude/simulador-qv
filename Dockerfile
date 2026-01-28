@@ -32,16 +32,10 @@ ENV PORT=9002
 # Install wget for healthcheck
 RUN apk add --no-cache wget
 
-# Enable corepack and install pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
-
-# Copy package files
-COPY package.json pnpm-lock.yaml* ./
-
-# Install only production dependencies
-RUN pnpm install --prod --frozen-lockfile
-
-# Copy built application from builder
+# Copia artefatos e dependências já instaladas no build
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/pnpm-lock.yaml* ./
+COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/next.config.* ./
@@ -57,4 +51,4 @@ USER nextjs
 
 EXPOSE 9002
 
-CMD ["pnpm", "start"]
+CMD ["node", "node_modules/next/dist/bin/next", "start", "-p", "9002"]
