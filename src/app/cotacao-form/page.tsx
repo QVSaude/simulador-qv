@@ -79,7 +79,7 @@ export default function Home() {
 
   const handleGoBack = () => {
     setShowSimulations(false);
-    setFormData(null);
+    // Removed: setFormData(null);
     setSimulationResults([]);
   };
 
@@ -136,7 +136,7 @@ export default function Home() {
         </div>
         <div className="flex justify-center items-center p-4 md:p-8 bg-gray-100">
            <div className="w-full max-w-lg">
-            <QuoteForm onSimulate={handleSimulationRequest} />
+            <QuoteForm onSimulate={handleSimulationRequest} initialData={formData} />
            </div>
         </div>
       </main>

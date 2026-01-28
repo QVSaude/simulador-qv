@@ -118,6 +118,7 @@ export type FormData = z.infer<typeof formSchema>;
 
 interface QuoteFormProps {
   onSimulate: (data: FormData & { quoteId: string }, results: any[]) => void;
+  initialData?: FormData | null; // Added prop
 }
 
 function DateInput({ value, onChange }: { value?: Date; onChange: (date: Date | undefined) => void }) {
@@ -167,7 +168,7 @@ function DateInput({ value, onChange }: { value?: Date; onChange: (date: Date | 
   );
 }
 
-export function QuoteForm({ onSimulate }: QuoteFormProps) {
+export function QuoteForm({ onSimulate, initialData }: QuoteFormProps) {
   const [selectedState, setSelectedState] = React.useState<State | null>(null);
   const [professions, setProfessions] = React.useState<Profession[]>([]);
   const [filteredEntities, setFilteredEntities] = React.useState<Entity[]>([]);
@@ -182,7 +183,7 @@ export function QuoteForm({ onSimulate }: QuoteFormProps) {
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
+    defaultValues: initialData || {
       fullName: "",
       phoneNumber: "",
       email: "",
@@ -318,22 +319,9 @@ export function QuoteForm({ onSimulate }: QuoteFormProps) {
     form.setValue("city", city);
   };
 
-const handleProfessionChange = async (professionDesc: string) => {
-    console.log("1. [FRONTEND] - Profissão selecionada:", professionDesc);
-
-    form.setValue("profession", professionDesc);
-    form.resetField("entity");
-    setFilteredEntities([]);
+  const fetchEntities = async (professionDesc: string, data: FormData) => {
     setLoadingEntities(true);
-
-    if (!professionDesc) {
-      setLoadingEntities(false);
-      return;
-    }
-
     try {
-      const data = form.getValues();
-
       const proponentes = [];
       // Add titular
       if (data.birthDate && data.sexo && data.estadoCivil) {
@@ -395,6 +383,34 @@ const handleProfessionChange = async (professionDesc: string) => {
       console.log("4. [FRONTEND] - Finalizada a busca por entidades.");
     }
   };
+
+  const handleProfessionChange = async (professionDesc: string) => {
+    console.log("1. [FRONTEND] - Profissão selecionada:", professionDesc);
+
+    form.setValue("profession", professionDesc);
+    form.resetField("entity");
+    setFilteredEntities([]);
+
+    if (!professionDesc) {
+      return;
+    }
+
+    await fetchEntities(professionDesc, form.getValues());
+  };
+
+  React.useEffect(() => {
+    if (initialData) {
+      // Restore state selection
+      if (initialData.state) {
+        const state = states.find((s) => s.uf === initialData.state);
+        setSelectedState(state || null);
+      }
+      // Restore entities based on profession
+      if (initialData.profession) {
+        fetchEntities(initialData.profession, initialData);
+      }
+    }
+  }, []); // Run on mount
 
 
   React.useEffect(() => {

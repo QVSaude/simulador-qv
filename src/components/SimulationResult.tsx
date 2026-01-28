@@ -305,15 +305,26 @@ export function SimulationResult({ onGoBack, formData: initialFormData, results:
 
         try {
             const quotesCollection = collection(firestore, 'quotes');
-            const docRef = await addDocumentNonBlocking(quotesCollection, quoteData);
+            
+            // Create a timeout promise to prevent infinite loading
+            const timeoutPromise = new Promise((_, reject) => 
+                setTimeout(() => reject(new Error("Tempo limite excedido ao salvar cotação.")), 15000)
+            );
+
+            const docRef = await Promise.race([
+                addDocumentNonBlocking(quotesCollection, quoteData),
+                timeoutPromise
+            ]) as any;
+
             if (!docRef || !docRef.id) throw new Error("A referência do documento não foi retornada após salvar.");
             
             return `${window.location.origin}/cotacao/view?id=${docRef.id}`;
-        } catch (error) {
+        } catch (error: any) {
             console.error("Erro ao salvar cotação no Firestore: ", error);
+            const details = (error && typeof error.message === 'string') ? error.message : 'Não foi possível salvar sua cotação no banco de dados.';
             setAlertConfig({
                 title: 'Erro ao Salvar',
-                description: 'Não foi possível salvar sua cotação no banco de dados. Verifique o console para mais detalhes.',
+                description: details,
             });
             setIsAlertOpen(true);
             return null;
@@ -325,15 +336,37 @@ export function SimulationResult({ onGoBack, formData: initialFormData, results:
     const handleAction = async (action: 'print' | 'pdf' | 'whatsapp') => {
         if (isSaving || !currentFormData) return;
         
+        // 1. Open window immediately to avoid popup blocker (for print/pdf/whatsapp)
+        let newWindow: Window | null = null;
+        if (action === 'print' || action === 'pdf' || action === 'whatsapp') {
+             newWindow = window.open('', '_blank');
+             if (newWindow) {
+                 const title = action === 'whatsapp' ? 'Abrindo WhatsApp...' : 'Gerando...';
+                 const message = action === 'whatsapp' ? 'Preparando mensagem para o WhatsApp...' : 'Gerando seu documento...';
+                 newWindow.document.write(`<html><head><title>${title}</title></head><body style="display:flex;justify-content:center;align-items:center;height:100vh;font-family:sans-serif;background-color:#f9fafb;"><div style="text-align:center;padding:20px;"><h3>${message}</h3><p style="color:#6b7280;">Por favor, aguarde enquanto preparamos sua cotação.</p></div></body></html>`);
+             } else {
+                 toast({ variant: "destructive", title: "Pop-up bloqueado", description: "Permita pop-ups para continuar." });
+                 return;
+             }
+        }
+
         const quoteLink = await saveQuoteAndGetLink();
-        if (!quoteLink) return;
+        
+        if (!quoteLink) {
+            if (newWindow) newWindow.close();
+            return;
+        }
 
         if (action === 'print' || action === 'pdf') {
-            const quoteWindow = window.open(quoteLink, '_blank');
-            if (action === 'print' && quoteWindow) {
-                quoteWindow.onload = () => {
-                    setTimeout(() => quoteWindow.print(), 500);
-                };
+            if (newWindow) {
+                newWindow.location.href = quoteLink;
+                // For print, we rely on the user printing from the new page, 
+                // or we can try to trigger it if the new page allows.
+                if (action === 'print') {
+                    newWindow.onload = () => {
+                         setTimeout(() => newWindow?.print(), 1000);
+                    };
+                }
             }
         } else if (action === 'whatsapp') {
              const selectedPlan = currentResults.find(plan => plan.faturas?.[0]?.id?.toString() === selectedPlanId);
@@ -349,7 +382,12 @@ export function SimulationResult({ onGoBack, formData: initialFormData, results:
              message += `Qualquer dúvida, estou à disposição.`;
              
              const whatsappUrl = `https://wa.me/${clientPhoneNumber.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
-             window.open(whatsappUrl, '_blank');
+             
+             if (newWindow) {
+                 newWindow.location.href = whatsappUrl;
+             } else {
+                 window.open(whatsappUrl, '_blank');
+             }
         }
     }
     
