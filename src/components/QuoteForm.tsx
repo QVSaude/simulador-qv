@@ -4,7 +4,7 @@ import * as React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
-import { format } from "date-fns";
+import { format, parse, isValid } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { CalendarIcon, Trash2 } from "lucide-react";
 import { v4 as uuidv4 } from 'uuid';
@@ -118,6 +118,53 @@ export type FormData = z.infer<typeof formSchema>;
 
 interface QuoteFormProps {
   onSimulate: (data: FormData & { quoteId: string }, results: any[]) => void;
+}
+
+function DateInput({ value, onChange }: { value?: Date; onChange: (date: Date | undefined) => void }) {
+  const [inputValue, setInputValue] = React.useState("");
+  
+  // Sync input with external value changes (e.g. from Calendar)
+  React.useEffect(() => {
+    if (value) {
+      setInputValue(format(value, "dd/MM/yyyy"));
+    } else if (inputValue && inputValue.length === 10 && isValid(parse(inputValue, "dd/MM/yyyy", new Date()))) {
+       setInputValue("");
+    }
+  }, [value]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let val = e.target.value.replace(/\D/g, "");
+    if (val.length > 8) val = val.slice(0, 8);
+    
+    let formatted = val;
+    if (val.length >= 5) {
+      formatted = `${val.slice(0, 2)}/${val.slice(2, 4)}/${val.slice(4)}`;
+    } else if (val.length >= 3) {
+      formatted = `${val.slice(0, 2)}/${val.slice(2)}`;
+    }
+    
+    setInputValue(formatted);
+
+    if (formatted.length === 10) {
+      const parsed = parse(formatted, "dd/MM/yyyy", new Date());
+      if (isValid(parsed)) {
+        onChange(parsed);
+      } else {
+        onChange(undefined);
+      }
+    } else {
+      onChange(undefined);
+    }
+  };
+
+  return (
+    <div className="flex gap-2">
+      <Input value={inputValue} onChange={handleInputChange} placeholder="DD/MM/AAAA" maxLength={10} />
+      <Popover>
+        {/* Calendar Trigger */}
+      </Popover>
+    </div>
+  );
 }
 
 export function QuoteForm({ onSimulate }: QuoteFormProps) {
@@ -575,35 +622,9 @@ const handleProfessionChange = async (professionDesc: string) => {
               render={({ field }) => (
                 <FormItem className="flex flex-col">
                   <FormLabel>Data de Nascimento</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            "pl-3 text-left font-normal",
-                            !field.value && "text-muted-foreground"
-                          )}
-                        >
-                          {field.value ? (
-                            format(field.value, "dd/MM/yyyy")
-                          ) : (
-                            <span>DD/MM/AAAA</span>
-                          )}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        variant="idade"
-                        mode="single"
-                        selected={field.value}
-                        onSelect={field.onChange}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
+                  <FormControl>
+                    <DateInput value={field.value} onChange={field.onChange} />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -698,35 +719,9 @@ const handleProfessionChange = async (professionDesc: string) => {
                             render={({ field }) => (
                                 <FormItem className="flex flex-col">
                                     <FormLabel>Data de Nascimento</FormLabel>
-                                    <Popover>
-                                      <PopoverTrigger asChild>
-                                        <FormControl>
-                                          <Button
-                                            variant={"outline"}
-                                            className={cn(
-                                              "pl-3 text-left font-normal",
-                                              !field.value && "text-muted-foreground"
-                                            )}
-                                          >
-                                            {field.value ? (
-                                              format(field.value, "dd/MM/yyyy")
-                                            ) : (
-                                              <span>DD/MM/AAAA</span>
-                                            )}
-                                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                          </Button>
-                                        </FormControl>
-                                      </PopoverTrigger>
-                                      <PopoverContent className="w-auto p-0" align="start">
-                                        <Calendar
-                                          mode="single"
-                                          variant="idade"
-                                          selected={field.value}
-                                          onSelect={field.onChange}
-                                          initialFocus
-                                        />
-                                      </PopoverContent>
-                                    </Popover>
+                                    <FormControl>
+                                      <DateInput value={field.value} onChange={field.onChange} />
+                                    </FormControl>
                                     <FormMessage />
                                 </FormItem>
                             )}
