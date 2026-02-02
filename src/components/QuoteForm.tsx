@@ -212,7 +212,7 @@ export function QuoteForm({ onSimulate, initialData }: QuoteFormProps) {
                 cpf: "768.883.090-70",
                 sexo: data.sexo,
                 estadoCivil: data.estadoCivil,
-                profissao: data.profession,
+                profissao: data.profession.toUpperCase(),
             },
             ...(data.dependents || []).map(dep => ({
                 uuid: uuidv4(),
@@ -228,20 +228,20 @@ export function QuoteForm({ onSimulate, initialData }: QuoteFormProps) {
                 origemProposta: "Venda fácil",
                 tipoProduto: "COLETIVO" as const,
                 tipoContratacaoProduto: "Adesão" as const,
-                conveniados: [parseInt(data.entity, 10)],
+                conveniados: [parseInt(data.entity)],
                 EhCorretor: true,
                 EhEmpresarial: false,
                 localidade: {
                     uf: data.state,
-                    municipio: data.city,
+                    municipio: data.city.toUpperCase(),
                 },
                 corretor: {
-                    id: 21218,
-                    nome: "Jaqueline Agra",
-                    email: "jaqueline.agra@qvsaude.com.br",
-                    cpf: "072.663.657-67",
-                    praca: "RJ",
-                    estrutura: "2021 0001 0002",
+                    id: 21217,
+                    nome: "Suporte Vexur",
+                    email: "suporte@vexur.com.br",
+                    cpf: "026.301.040-60",
+                    praca: "SP",
+                    estrutura: "2021 0001 0001",
                     tipoCorretor: "PESSOA FÍSICA"
                 },
                 proponentes: proponentes,
@@ -252,7 +252,7 @@ export function QuoteForm({ onSimulate, initialData }: QuoteFormProps) {
         
         console.log("3. [FRONTEND] - Chamando a função do backend 'getVexurProducts'...");
         const results = await getVexurProducts(payload);
-        console.log("4. [FRONTEND] - Resultados recebidos do backend:", results);
+        console.log("4. [FRONTEND] - Resultados recebidos do backend dos produtos:", results);
         
         const quoteId = uuidv4();
         onSimulate({ ...data, quoteId }, results);
