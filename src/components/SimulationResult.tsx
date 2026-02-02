@@ -131,10 +131,15 @@ export function SimulationResult({ onGoBack, formData: initialFormData, results:
     }, [initialFormData]);
 
     useEffect(() => {
-        if (currentResults && currentResults.length > 0) {
-            const firstPlanId = currentResults.filter(plan => plan?.faturas?.[0]?.id)[0]?.faturas?.[0]?.id?.toString();
-            setSelectedPlanId(firstPlanId);
-        } else {
+        // Only select the first plan if no plan is currently selected
+        if (currentResults && currentResults.length > 0 && !selectedPlanId) {
+            const firstPlan = currentResults.filter(plan => plan?.faturas?.[0]?.id)[0];
+            if (firstPlan) {
+                // Use a composite ID to ensure uniqueness even if multiple plans share the same ID
+                const firstPlanId = `${firstPlan.faturas[0].id.toString()}::0`;
+                setSelectedPlanId(firstPlanId);
+            }
+        } else if (!currentResults || currentResults.length === 0) {
             setSelectedPlanId(undefined);
         }
     }, [currentResults]);
@@ -266,7 +271,9 @@ export function SimulationResult({ onGoBack, formData: initialFormData, results:
 
         setIsSaving(true);
         
-        const selectedPlan = currentResults.find(plan => plan.faturas?.[0]?.id?.toString() === selectedPlanId);
+        const selectedPlanIndex = selectedPlanId ? parseInt(selectedPlanId.split('::')[1], 10) : -1;
+        const selectedPlan = selectedPlanIndex >= 0 ? currentResults[selectedPlanIndex] : undefined;
+
         if (!selectedPlan) {
             console.error("Plano selecionado não foi encontrado ou tem estrutura inválida nos resultados.");
             setAlertConfig({
@@ -369,7 +376,9 @@ export function SimulationResult({ onGoBack, formData: initialFormData, results:
                 }
             }
         } else if (action === 'whatsapp') {
-             const selectedPlan = currentResults.find(plan => plan.faturas?.[0]?.id?.toString() === selectedPlanId);
+             const selectedPlanIndex = selectedPlanId ? parseInt(selectedPlanId.split('::')[1], 10) : -1;
+             const selectedPlan = selectedPlanIndex >= 0 ? currentResults[selectedPlanIndex] : undefined;
+
              if (!selectedPlan) {
                  toast({ variant: 'destructive', title: 'Erro', description: 'Plano selecionado não encontrado para envio.' });
                  return;
@@ -582,15 +591,16 @@ export function SimulationResult({ onGoBack, formData: initialFormData, results:
                                 .filter(plan => plan?.faturas?.[0]?.id)
                                 .map((plan, index) => {
                                 const planId = plan.faturas[0].id.toString();
-                                const isSelected = selectedPlanId === planId;
+                                const uniqueId = `${planId}::${index}`;
+                                const isSelected = selectedPlanId === uniqueId;
                                 const planValue = plan.faturas[0]?.valores?.[0]?.valorVenda;
                                 const tags = getPlanTags(plan);
 
                                 return (
                                     <Card 
-                                        key={planId}
+                                        key={uniqueId}
                                         className={`overflow-hidden relative cursor-pointer transition-all ${isSelected ? 'border-primary ring-2 ring-primary' : ''}`}
-                                        onClick={() => setSelectedPlanId(planId)}
+                                        onClick={() => setSelectedPlanId(uniqueId)}
                                     >
                                         {index === 0 && (
                                             <Badge className="absolute top-4 right-4 bg-amber-400 text-amber-900 hover:bg-amber-500">
@@ -598,7 +608,7 @@ export function SimulationResult({ onGoBack, formData: initialFormData, results:
                                             </Badge>
                                         )}
                                         <CardContent className="p-4 flex items-center gap-4">
-                                            <RadioGroupItem value={planId} id={`plan-${planId}`} />
+                                            <RadioGroupItem value={uniqueId} id={`plan-${uniqueId}`} />
                                             <div className="flex-1 space-y-2">
                                                 <div className="flex justify-between items-start">
                                                     <h3 className="font-semibold text-lg pr-24">{plan.nomeAmigavelProduto || plan.nomeProdutoNoRegulador}</h3>
